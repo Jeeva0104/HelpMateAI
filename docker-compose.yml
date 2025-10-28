@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  rag-pipeline:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - chroma_data:/app/chroma_db
+      - app_logs:/app/logs
+      - .:/app  # For development hot reload
+    environment:
+      - ENV=development
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "python", "/app/scripts/build_vector_store.py", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+volumes:
+  chroma_data:
+    driver: local
+  app_logs:
+    driver: local
+
+networks:
+  default:
+    name: rag-pipeline-network
