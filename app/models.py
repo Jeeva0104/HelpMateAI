@@ -31,6 +31,16 @@ class QueryResponse(BaseModel):
     processing_time_ms: float
     timestamp: datetime
 
+class SearchRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=1000, description="Search query")
+
+class SearchResponse(BaseModel):
+    query: str
+    search_results: List[SearchResult]
+    from_cache: bool
+    processing_time_ms: float
+    timestamp: datetime
+
 class HealthResponse(BaseModel):
     status: str
     timestamp: datetime

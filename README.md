@@ -199,37 +199,62 @@ print(f"Response: {result['response']}")
 print(f"Citations: {result['citations']}")
 ```
 
-## 🔍 Insurance Query Examples with Screenshots
+## 🔍 RAG Pipeline in Action
 
-Below are real examples of insurance-related queries processed by the RAG pipeline, showing the actual API responses with relevant citations and metadata from the insurance policy document.
+Below are real examples demonstrating the two-stage RAG pipeline process: semantic search retrieval from the vector database and final formatted response generation.
 
-### Death Benefit Claims
-**Query:** "How do I file a death benefit claim?"
+### Stage 1: Search Results - Vector Database Retrieval
 
-![Death Benefit Claim Query](screenshoot/image1.png)
+#### Example 1: Insurance Benefit Claims
+**Query:** Insurance benefit and claims related query
 
-*Screenshot shows the API response with specific instructions for filing death benefit claims, including required documentation and process steps with citations from the policy.*
+![Search Results 1](screenshoot/search-result-image1.png)
 
-### Premium Payment Grace Period
-**Query:** "What is the grace period for premium payments?"
+*Shows the top 3 semantically similar document chunks retrieved from the vector database with similarity scores and relevance rankings.*
 
-![Grace Period Query](screenshoot/image2.png)
+#### Example 2: Policy Terms and Conditions  
+**Query:** Policy terms and conditions related query
 
-*Screenshot displays the grace period details and consequences of late payments, with exact policy references and page citations.*
+![Search Results 2](screenshoot/search-result-image2.png)
 
-### Beneficiary Changes
-**Query:** "How can beneficiaries be changed after policy issuance?"
+*Demonstrates the vector search accuracy in finding relevant policy sections with high semantic similarity scores.*
 
-![Beneficiary Changes Query](screenshoot/image3.png)
+#### Example 3: Premium and Payment Information
+**Query:** Premium payment and financial terms query
 
-*Screenshot presents the process and requirements for updating beneficiaries, including necessary forms and conditions with policy citations.*
+![Search Results 3](screenshoot/search-result-image3.png)
 
-### Missed Premium Payments
-**Query:** "What happens if premium payments are missed?"
+*Illustrates the retrieval of contextually relevant financial and payment-related policy information.*
 
-![Missed Payments Query](screenshoot/image4.png)
+### Stage 2: Query Results - Final Formatted Responses
 
-*Screenshot shows the consequences of missed payments, lapse procedures, and reinstatement options with detailed policy references.*
+#### Example 1: Comprehensive Insurance Response
+**Query:** Insurance-related inquiry with complete answer
+
+![Formatted Response 1](screenshoot/query-result-image1.png)
+
+*Shows the complete formatted response with proper citations, page references, and structured output from the generation layer.*
+
+#### Example 2: Policy Information with Citations
+**Query:** Policy details inquiry with source attribution
+
+![Formatted Response 2](screenshoot/query-result-image2.png)
+
+*Demonstrates the final response formatting with detailed citations and cross-references to specific policy sections.*
+
+#### Example 3: Detailed Claims Process Response
+**Query:** Claims and procedures inquiry with step-by-step guidance
+
+![Formatted Response 3](screenshoot/query-result-image3.png)
+
+*Presents the structured response format with comprehensive information and proper source documentation.*
+
+### RAG Pipeline Benefits Demonstrated:
+- **Accurate Retrieval**: Vector search finds semantically relevant content even with varied query phrasing
+- **Contextual Understanding**: Cross-encoder re-ranking ensures the most relevant chunks are prioritized
+- **Structured Responses**: LLM generation creates coherent, well-formatted answers with proper citations
+- **Source Transparency**: Every response includes specific page references and document citations
+- **Performance Optimization**: Caching and efficient search reduce response times for similar queries
 
 ## 🔧 Development
 
@@ -255,10 +280,13 @@ HelpMateAI/
 ├── data/                        # Input documents
 │   └── Principal-Sample-Life-Insurance-Policy.pdf
 ├── screenshoot/                 # Example screenshots
-│   ├── image1.png              # Death benefit claims
-│   ├── image2.png              # Grace period query
-│   ├── image3.png              # Beneficiary changes
-│   └── image4.png              # Missed payments
+│   ├── search-result-image1.png # Vector DB search results example 1
+│   ├── search-result-image2.png # Vector DB search results example 2
+│   ├── search-result-image3.png # Vector DB search results example 3
+│   ├── query-result-image1.png  # Formatted response example 1
+│   ├── query-result-image2.png  # Formatted response example 2
+│   ├── query-result-image3.png  # Formatted response example 3
+│   └── image4.png              # Legacy example image
 ├── chroma_db/                   # Vector database storage
 ├── logs/                        # Application logs
 ├── docker-compose.yml           # Docker orchestration

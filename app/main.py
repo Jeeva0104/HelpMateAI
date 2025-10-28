@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Optional
 import os
 
-from app.models import QueryRequest, QueryResponse, HealthResponse, SearchResult
+from app.models import QueryRequest, QueryResponse, HealthResponse, SearchResult, SearchRequest, SearchResponse
 from app.services.embedding_service import EmbeddingService
 from app.services.search_service import SearchService
 from app.services.generation_service import GenerationService
@@ -157,6 +157,65 @@ async def query_documents(
             detail=f"Internal server error while processing query: {str(e)}"
         )
 
+@app.post("/search", response_model=SearchResponse)
+async def search_documents(
+    request: SearchRequest,
+    search_svc: SearchService = Depends(get_search_service)
+):
+    """
+    Search endpoint that returns top 3 results from the search layer only.
+    
+    This endpoint performs:
+    1. Semantic search with caching
+    2. Re-ranking using cross-encoder
+    3. Returns top 3 search results without generation
+    
+    Example usage for "How do I file a death benefit claim?"
+    """
+    start_time = time.time()
+    
+    try:
+        logger.info(f"Processing search query: {request.query}")
+        
+        # Perform search with cache (includes semantic search and re-ranking)
+        search_results, from_cache = search_svc.search_with_cache(
+            query=request.query,
+            n_results=settings.search_results_limit
+        )
+        
+        if not search_results:
+            raise HTTPException(
+                status_code=404, 
+                detail="No relevant documents found for your query"
+            )
+        
+        # Return only top 3 results
+        top_3_results = search_results[:3]
+        
+        # Calculate processing time
+        processing_time = (time.time() - start_time) * 1000
+        
+        # Prepare response
+        response = SearchResponse(
+            query=request.query,
+            search_results=top_3_results,
+            from_cache=from_cache,
+            processing_time_ms=processing_time,
+            timestamp=datetime.now()
+        )
+        
+        logger.info(f"Search completed successfully in {processing_time:.2f}ms, returned {len(top_3_results)} results")
+        return response
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error processing search: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Internal server error while processing search: {str(e)}"
+        )
+
 @app.get("/health", response_model=HealthResponse)
 async def health_check(
     embedding_svc: EmbeddingService = Depends(get_embedding_service)
@@ -220,6 +279,7 @@ async def root():
         "description": "Retrieval-Augmented Generation Pipeline for Insurance Documents",
         "endpoints": {
             "query": "/query - POST - Submit queries to the RAG pipeline",
+            "search": "/search - POST - Get top 3 search results from the retrieval layer",
             "chat": "/chat - GET - Access the chatbot interface",
             "health": "/health - GET - Check system health",
             "docs": "/docs - GET - Interactive API documentation"
