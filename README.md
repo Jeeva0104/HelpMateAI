@@ -4,6 +4,83 @@ A production-ready Retrieval-Augmented Generation (RAG) pipeline for insurance d
 
 ## 🏗️ Architecture
 
+```mermaid
+flowchart TD
+    User[👤 User] --> WebUI[🌐 Web Interface<br/>/chat]
+    User --> API[📡 API Endpoints<br/>/query, /health]
+    
+    subgraph Docker["🐳 Docker Container"]
+        subgraph FastAPI["⚡ FastAPI Application"]
+            WebUI --> Router[🔀 Request Router]
+            API --> Router
+            
+            Router --> EmbeddingLayer[📊 Embedding Layer]
+            Router --> SearchLayer[🔍 Search Layer] 
+            Router --> GenerationLayer[🤖 Generation Layer]
+            
+            subgraph EmbeddingLayer["📊 Embedding Layer"]
+                PDFProcessor[📄 PDF Processor]
+                TextChunker[✂️ Text Chunker]
+                EmbeddingGen[🔢 Embedding Generator]
+            end
+            
+            subgraph SearchLayer["🔍 Search Layer"]
+                QueryEmbed[🔢 Query Embedding]
+                VectorSearch[🎯 Vector Search]
+                Reranker[📊 Cross-Encoder Re-ranking]
+                Cache[💾 Response Cache]
+            end
+            
+            subgraph GenerationLayer["🤖 Generation Layer"]
+                ContextPrep[📝 Context Preparation]
+                LLMCall[🧠 LLM Integration]
+                CitationExtract[📎 Citation Extraction]
+            end
+        end
+        
+        subgraph Storage["💾 Data Storage"]
+            ChromaDB[(🗃️ ChromaDB<br/>Vector Store)]
+            Documents[(📚 PDF Documents<br/>/data)]
+        end
+    end
+    
+    subgraph External["☁️ External Services"]
+        Gemini[🤖 Google Gemini API]
+    end
+    
+    %% Data Flow Connections
+    PDFProcessor --> Documents
+    TextChunker --> EmbeddingGen
+    EmbeddingGen --> ChromaDB
+    
+    QueryEmbed --> VectorSearch
+    VectorSearch --> ChromaDB
+    ChromaDB --> Reranker
+    Reranker --> Cache
+    Cache --> ContextPrep
+    
+    ContextPrep --> LLMCall
+    LLMCall --> Gemini
+    Gemini --> CitationExtract
+    CitationExtract --> Router
+    
+    Router --> Response[📤 Formatted Response<br/>with Citations]
+    Response --> User
+    
+    %% Styling
+    classDef userClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef layerClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef storageClass fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef externalClass fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef containerClass fill:#f5f5f5,stroke:#424242,stroke-width:3px
+    
+    class User,Response userClass
+    class EmbeddingLayer,SearchLayer,GenerationLayer layerClass
+    class ChromaDB,Documents storageClass
+    class Gemini externalClass
+    class Docker,FastAPI containerClass
+```
+
 The RAG pipeline is structured into three distinct layers:
 
 ### 1. **Embedding Layer** (Startup Script)
